@@ -38,11 +38,15 @@ struct ClipboardRow: View {
         )
         .contentShape(Rectangle())
         .onTapGesture(perform: onSelect)
-        .onHover { isHovering in
-            hover.isHovering = isHovering
-            if isHovering, item.kind == .text, item.preview.hasSuffix("…") {
-                TextPreviewPanel.shared.show(text: item.text)
-            } else {
+        .onContinuousHover { phase in
+            switch phase {
+            case .active:
+                hover.isHovering = true
+                if item.kind == .text {
+                    TextPreviewPanel.shared.show(text: item.text)
+                }
+            case .ended:
+                hover.isHovering = false
                 TextPreviewPanel.shared.hide()
             }
         }
