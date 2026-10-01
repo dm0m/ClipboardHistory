@@ -37,7 +37,12 @@ struct ClipboardRow: View {
             in: RoundedRectangle(cornerRadius: 12, style: .continuous)
         )
         .contentShape(Rectangle())
-        .onTapGesture(perform: onSelect)
+        .onTapGesture {
+            // Selecting closes the popover, so hover never ends normally;
+            // reset it now so the row isn't left highlighted on reopen.
+            endHover()
+            onSelect()
+        }
         .onContinuousHover { phase in
             switch phase {
             case .active:
@@ -47,12 +52,18 @@ struct ClipboardRow: View {
                 hover.isHovering = true
                 showPreview()
             case .ended:
-                hover.isHovering = false
-                PreviewPanel.shared.hide()
+                endHover()
             }
         }
+        // A hovered row can vanish without a hover `.ended` (e.g. deleted).
+        .onDisappear { if hover.isHovering { endHover() } }
         .animation(.easeOut(duration: 0.12), value: hover.isHovering)
         .help(item.hoverInfo())
+    }
+
+    private func endHover() {
+        hover.isHovering = false
+        PreviewPanel.shared.hide()
     }
 
     private func showPreview() {

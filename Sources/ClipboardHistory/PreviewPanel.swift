@@ -26,6 +26,11 @@ final class PreviewPanel {
     private let textField: NSTextField
     private let imageView: NSImageView
     private let content: NSView
+    /// Observers on the host window that hide the panel when it goes away.
+    /// Clicking a row closes the popover out from under the cursor, so the
+    /// row never receives a hover `.ended` — without these the panel would
+    /// be left floating on screen.
+    private var hostObservers: [NSObjectProtocol] = []
 
     private init() {
         textField = NSTextField(wrappingLabelWithString: "")
@@ -93,6 +98,7 @@ final class PreviewPanel {
     }
 
     func hide() {
+        removeHostObservers()
         panel.orderOut(nil)
     }
 
@@ -134,5 +140,21 @@ final class PreviewPanel {
 
         panel.setFrame(NSRect(origin: origin, size: panelSize), display: false)
         panel.orderFront(nil)
+        observe(hostWindow)
+    }
+
+    private func observe(_ hostWindow: NSWindow) {
+        removeHostObservers()
+        let center = NotificationCenter.default
+        hostObservers = [NSWindow.didResignKeyNotification, NSWindow.willCloseNotification].map { name in
+            center.addObserver(forName: name, object: hostWindow, queue: .main) { _ in
+                MainActor.assumeIsolated { PreviewPanel.shared.hide() }
+            }
+        }
+    }
+
+    private func removeHostObservers() {
+        hostObservers.forEach(NotificationCenter.default.removeObserver)
+        hostObservers = []
     }
 }
