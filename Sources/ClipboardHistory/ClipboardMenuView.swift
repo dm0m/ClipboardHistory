@@ -89,7 +89,8 @@ struct ClipboardMenuView: View {
                             )
                         }
                     }
-                    .padding(.horizontal, 8)
+                    .padding(.leading, 8)
+                    .padding(.trailing, 16)
                     .padding(.vertical, 6)
                 }
             }
