@@ -41,17 +41,36 @@ struct ClipboardRow: View {
         .onContinuousHover { phase in
             switch phase {
             case .active:
+                // Fires on every mouse move; only act when the hover starts
+                // so the preview (and any image decode) isn't redone each time.
+                guard !hover.isHovering else { return }
                 hover.isHovering = true
-                if item.kind == .text {
-                    TextPreviewPanel.shared.show(text: item.text)
-                }
+                showPreview()
             case .ended:
                 hover.isHovering = false
-                TextPreviewPanel.shared.hide()
+                PreviewPanel.shared.hide()
             }
         }
         .animation(.easeOut(duration: 0.12), value: hover.isHovering)
         .help(item.hoverInfo())
+    }
+
+    private func showPreview() {
+        switch item.kind {
+        case .text:
+            PreviewPanel.shared.show(text: item.text)
+        case .image:
+            if let data = item.imageData, let nsImage = NSImage(data: data) {
+                PreviewPanel.shared.show(image: nsImage)
+            }
+        case .file:
+            // A Finder copy of an image file arrives as a file reference,
+            // not image data — preview it from disk.
+            if let path = item.filePaths?.first, PreviewPanel.isImageFile(path),
+               let nsImage = NSImage(contentsOfFile: path) {
+                PreviewPanel.shared.show(image: nsImage)
+            }
+        }
     }
 
     @ViewBuilder
