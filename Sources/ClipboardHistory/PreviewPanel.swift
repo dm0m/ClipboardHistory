@@ -60,7 +60,7 @@ final class PreviewPanel {
 
         content = NSView()
         content.wantsLayer = true
-        content.layer?.cornerRadius = Self.cornerRadius
+        content.layer?.cornerCurve = .continuous
         content.layer?.borderWidth = 1
         content.addSubview(textField)
         content.addSubview(imageView)
@@ -135,6 +135,9 @@ final class PreviewPanel {
     private func present(contentSize: NSSize, beside hostWindow: NSWindow) {
         let padding = Self.padding
         let panelSize = NSSize(width: contentSize.width + padding * 2, height: contentSize.height + padding * 2)
+        // A radius over half the height pinches short (single-line) panels
+        // into a lemon shape; cap it so they become a clean capsule.
+        content.layer?.cornerRadius = min(Self.cornerRadius, panelSize.height / 2)
         let hostFrame = hostWindow.frame
         let origin = NSPoint(x: hostFrame.minX - panelSize.width - 8, y: hostFrame.maxY - panelSize.height)
 
