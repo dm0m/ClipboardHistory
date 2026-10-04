@@ -14,8 +14,6 @@ struct ClipboardMenuView: View {
             }
         }
         .frame(width: 340, height: 460)
-        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 26, style: .continuous))
-        .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
     }
 
     private var mainContent: some View {
